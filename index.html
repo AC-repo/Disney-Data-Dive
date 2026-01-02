@@ -1,0 +1,906 @@
+Python 3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:48) [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
+Type "help", "copyright", "credits" or "license()" for more information.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Disney+ Content Analysis Dashboard">
+    <meta name="theme-color" content="#000000">
+    <title>Disney+ Analytics Dashboard</title>
+    
+    <link rel="manifest" href="data:application/json,{\"name\":\"Disney+ Analytics\",\"short_name\":\"Disney Analytics\",\"icons\":[],\"theme_color\":\"#000000\",\"display\":\"standalone\"}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><filter id="shadow"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.4"/></filter></defs><g fill="%23FFFFFF" stroke="%23000" stroke-width="2" filter="url(%23shadow)"><circle cx="32" cy="28" r="16"/><circle cx="96" cy="28" r="16"/><path d="M 32 44 Q 32 60 48 60 L 80 60 Q 96 60 96 44" fill="none" stroke="%23000" stroke-width="2"/><ellipse cx="24" cy="65" rx="8" ry="14" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/><ellipse cx="104" cy="65" rx="8" ry="14" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/><path d="M 24 79 L 16 110 L 24 105 L 28 85" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/><path d="M 24 79 L 32 110 L 24 105 L 28 85" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/><path d="M 104 79 L 112 110 L 104 105 L 100 85" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/><path d="M 104 79 L 96 110 L 104 105 L 100 85" fill="%23FFFFFF" stroke="%23000" stroke-width="2"/></g></svg>') 64 64, auto;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* HERO HEADER */
+        .header-hero {
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%), linear-gradient(135deg, #001a4d 0%, #000 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 2px solid rgba(0, 204, 255, 0.3);
+        }
+
+        .disney-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #ffffff, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.7;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 3rem 2rem 1.5rem 2rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* METRICS TILES */
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 0 2rem 3rem 2rem;
+        }
+
+        .tile {
+            aspect-ratio: 9/16;
+            background: linear-gradient(135deg, #001a4d 0%, #003366 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 204, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .tile:hover {
+            transform: scale(1.05) translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 204, 255, 0.4);
+            border-color: rgba(0, 204, 255, 0.6);
+        }
+
+        .tile-content {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .tile-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .tile-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .tile-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #00ccff;
+            margin-top: 0.5rem;
+        }
+
+        /* HORIZONTAL BAR CHART */
+        .chart-section {
+            margin: 3rem 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 2rem;
+            background: linear-gradient(180deg, #00ccff, #0066ff);
+            border-radius: 2px;
+        }
+
+        .bar-chart-container {
+            background: linear-gradient(135deg, rgba(0, 26, 77, 0.5), rgba(0, 51, 102, 0.5));
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 204, 255, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .bar-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .bar-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .bar-wrapper {
+            background: rgba(0, 102, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 40px;
+            position: relative;
+            border: 1px solid rgba(0, 204, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bar-wrapper:hover {
+            border-color: rgba(0, 204, 255, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00ccff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .bar-wrapper:hover .bar-fill {
+            background: linear-gradient(90deg, #00ccff, #0066ff);
+        }
+
+        .bar-tooltip {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(0, 204, 255, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            min-width: 250px;
+        }
+
+        .bar-wrapper:hover .bar-tooltip {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            color: #00ccff;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .tooltip-content {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        /* PIE CHART CONTAINER */
+        .chart-container {
+            background: linear-gradient(135deg, rgba(0, 26, 77, 0.5), rgba(0, 51, 102, 0.5));
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 204, 255, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            min-height: 400px;
+        }
+
+        /* WORD CLOUD */
+        .wordcloud-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 26, 77, 0.5), rgba(0, 51, 102, 0.5));
+            border-radius: 12px;
+            border: 1px solid rgba(0, 204, 255, 0.15);
+            min-height: 350px;
+            align-content: center;
+            margin: 3rem 2rem;
+            position: relative;
+        }
+
+        .word {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #0066ff, #001a4d);
+            border-radius: 30px;
+            border: 1px solid rgba(0, 204, 255, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2);
+            position: relative;
+        }
+
+        .word:hover {
+            background: linear-gradient(135deg, #00ccff, #0066ff);
+            color: #000;
+            transform: scale(1.2);
+            box-shadow: 0 8px 25px rgba(0, 204, 255, 0.5);
+            border-color: rgba(0, 204, 255, 0.8);
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(0, 204, 255, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            min-width: 280px;
+            text-align: center;
+            white-space: normal;
+            font-size: 0.85rem;
+        }
+
+        .word:hover .word-tooltip {
+            opacity: 1;
+        }
+
+        /* ACTORS SECTION */
+        .actors-section {
+            padding: 3rem 2rem;
+        }
+
+        .actors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .actor-tile {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #0066ff 0%, #001a4d 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: visible;
+            cursor: pointer;
+        }
+
+        .actor-tile:hover {
+            transform: scale(1.05) translateY(-10px);
+            border-color: rgba(0, 204, 255, 0.8);
+            box-shadow: 0 12px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .actor-rank {
+            display: inline-block;
+            background: linear-gradient(135deg, #00ccff, #0066ff);
+            color: #000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            line-height: 60px;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 15px rgba(0, 204, 255, 0.5);
+        }
+
+        .actor-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .actor-appearances {
+            color: #00ccff;
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .actor-dropdown {
+            position: absolute;
+            bottom: -300px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.98);
+            border: 2px solid rgba(0, 204, 255, 0.6);
+            border-radius: 12px;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+            min-width: 280px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.3);
+        }
+
+        .actor-tile:hover .actor-dropdown {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .appearance-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 204, 255, 0.2);
+        }
+
+        .appearance-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .appearance-title {
+            color: #00ccff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .appearance-type {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        /* RATINGS GRID */
+        .ratings-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 2rem;
+        }
+
+        .rating-tile {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #001a4d 0%, #003366 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 1px solid rgba(0, 204, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .rating-tile:hover {
+            transform: scale(1.08) translateY(-8px);
+            border-color: rgba(0, 204, 255, 0.6);
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.3);
+        }
+
+        .rating-name {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #00ccff;
+            letter-spacing: 0.5px;
+            font-size: 0.95rem;
+        }
+
+        .rating-value {
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .rating-percentage {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+
+        .rating-tooltip {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(0, 204, 255, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            min-width: 220px;
+            font-size: 0.85rem;
+        }
+
+        .rating-tile:hover .rating-tooltip {
+            opacity: 1;
+        }
+
+        /* INSIGHTS */
+        .insights-section {
+            margin: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 26, 77, 0.5), rgba(0, 51, 102, 0.5));
+            border-radius: 12px;
+            padding: 2.5rem;
+            border: 1px solid rgba(0, 204, 255, 0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .insights-section p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .insights-section strong {
+            color: #00ccff;
+            font-weight: 700;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(0, 204, 255, 0.15);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 1.8rem;
+            }
+
+            .section-title,
+            .chart-title {
+                font-size: 1.3rem;
+                margin: 1.5rem 1rem;
+            }
+
+            .chart-section,
+            .actors-section,
+            .ratings-container,
+            .insights-section,
+            .wordcloud-container {
+                margin: 2rem 1rem;
+                padding: 1.5rem;
+            }
+
+            .actors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .tile-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+                padding: 0 1rem 2rem 1rem;
+            }
+
+            .bar-tooltip,
+            .word-tooltip,
+            .actor-dropdown,
+            .rating-tooltip {
+                min-width: 240px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 1.4rem;
+            }
+
+            .tile-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                padding: 0 0.75rem 1.5rem 0.75rem;
+            }
+
+            .section-title,
+            .chart-title {
+                font-size: 1.1rem;
+            }
+
+            .actors-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ratings-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header-hero">
+        <div class="disney-logo">DISNEY+</div>
+        <div class="header-title">Analytics Dashboard</div>
+        <div class="header-subtitle">Explore Content Insights & Data Trends</div>
+    </div>
+
+    <div class="container">
+        <!-- KEY METRICS -->
+        <div class="section-title">Key Metrics</div>
+        <div class="tile-grid">
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-icon">📺</div>
+                    <div class="tile-label">Total Titles</div>
+                    <div class="tile-value" id="totalTitles">1,450</div>
+                </div>
+            </div>
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-icon">🎬</div>
+                    <div class="tile-label">Unique Genres</div>
+                    <div class="tile-value" id="genreCount">15+</div>
+                </div>
+            </div>
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-icon">📅</div>
+                    <div class="tile-label">Years Spanned</div>
+                    <div class="tile-value" id="dateRange">85</div>
+                </div>
+            </div>
+            <div class="tile">
+                <div class="tile-content">
+                    <div class="tile-icon">⭐</div>
+                    <div class="tile-label">Rating Types</div>
+                    <div class="tile-value" id="ratingTypes">8</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP 15 GENRES - HORIZONTAL BAR CHART -->
+        <div class="chart-section">
+            <div class="chart-title">Top 15 Genres</div>
+            <div class="bar-chart-container" id="genresChart"></div>
+        </div>
+
+        <!-- CONTENT DISTRIBUTION -->
+        <div class="chart-section">
+            <div class="chart-title">Content Distribution</div>
+            <div class="chart-container">
+                <div id="typeChart"></div>
+            </div>
+        </div>
+
+        <!-- RATINGS -->
+        <div class="section-title">Content Ratings Breakdown</div>
+        <div class="ratings-container" id="ratingsContainer"></div>
+
+        <!-- WORD CLOUD -->
+        <div class="section-title">Top Disney+ Themes</div>
+        <div class="wordcloud-container" id="wordcloud"></div>
+
+        <!-- ACTORS -->
+        <div class="actors-section">
+            <div class="section-title">Top Disney+ Darlings</div>
+            <div class="actors-grid" id="actorsContainer"></div>
+        </div>
+
+        <!-- INSIGHTS -->
+        <div class="section-title">Key Insights</div>
+        <div class="insights-section" id="insightsContainer"></div>
+    </div>
+
+    <footer>
+        <p>🎪 Disney+ Analytics | Data-Driven Insights | Crafted with Pixar Precision</p>
+    </footer>
+
+    <script>
+        // Sample data structure with API connection placeholders
+        const data = {
+            genres: {
+                "Action": { count: 82, movie: "The Avengers", tv: "Marvel's Agents of S.H.I.E.L.D." },
+                "Adventure": { count: 75, movie: "Jungle Cruise", tv: "The Mandalorian" },
+                "Comedy": { count: 71, movie: "Encanto", tv: "Abbott Elementary" },
+                "Family": { count: 68, movie: "Frozen II", tv: "The Owl House" },
+                "Animation": { count: 65, movie: "Soul", tv: "Big City Greens" },
+                "Drama": { count: 60, movie: "Centigrade", tv: "Dopesick" },
+                "Fantasy": { count: 55, movie: "The Eternals", tv: "Willow" },
+                "Sci-Fi": { count: 50, movie: "Raya and the Last Dragon", tv: "Moon Knight" },
+                "Thriller": { count: 45, movie: "Red Notice", tv: "Andor" },
+                "Documentary": { count: 42, movie: "The Toys That Made Us", tv: "National Geographic" },
+                "Romance": { count: 38, movie: "Pixar's Lightyear", tv: "High School Musical" },
+                "Horror": { count: 35, movie: "Hocus Pocus", tv: "Werewolf by Night" },
+                "Mystery": { count: 30, movie: "Black Widow", tv: "Only Murders in the Building" },
+                "History": { count: 28, movie: "Hamilton", tv: "The Right Stuff" },
+                "Crime": { count: 25, movie: "Shang-Chi", tv: "Godless" }
+            },
+            word_cloud: {
+                "adventure": { count: 145, movie: "Jungle Cruise", tv: "The Mandalorian" },
+                "family": { count: 138, movie: "Encanto", tv: "The Owl House" },
+                "discover": { count: 120, movie: "Soul", tv: "National Geographic" },
+                "journey": { count: 115, movie: "Raya and the Last Dragon", tv: "WandaVision" },
+                "magic": { count: 110, movie: "Frozen II", tv: "The House of Mouse" },
+                "hero": { count: 105, movie: "The Avengers", tv: "Moon Knight" },
+                "battle": { count: 98, movie: "Thor: Love and Thunder", tv: "Loki" },
+                "mystery": { count: 92, movie: "Black Widow", tv: "Only Murders" },
+                "world": { count: 88, movie: "Avatar", tv: "Willow" },
+                "power": { count: 85, movie: "Doctor Strange", tv: "Ms. Marvel" }
+            },
+            top_actors: {
+                "Morgan Freeman": { count: 12, appearances: [
+                    { title: "The Shawshank Redemption", type: "Movie" },
+                    { title: "Oprah's Book Club", type: "TV Show" },
+                    { title: "National Geographic Presents", type: "Documentary" }
+                ] },
+                "Tom Hanks": { count: 11, appearances: [
+                    { title: "Toy Story", type: "Movie" },
+                    { title: "Forrest Gump", type: "Movie" },
+                    { title: "The Mule", type: "Movie" }
+                ] },
+                "Meryl Streep": { count: 10, appearances: [
+                    { title: "Into the Woods", type: "Movie" },
+                    { title: "The Iron Lady", type: "Movie" },
+                    { title: "Mamma Mia!", type: "Movie" }
+                ] }
+            },
+            ratings: {
+                "G": { count: 280, topTitle: "Encanto" },
+                "PG": { count: 420, topTitle: "Frozen II" },
+                "PG-13": { count: 380, topTitle: "The Avengers" },
+                "TV-Y": { count: 95, topTitle: "Mickey Mouse Clubhouse" },
+                "TV-14": { count: 150, topTitle: "The Mandalorian" },
+                "TV-MA": { count: 85, topTitle: "Daredevil" },
+                "R": { count: 35, topTitle: "Deadpool" },
+                "NC-17": { count: 5, topTitle: "Unrated Content" }
+            },
+            content_type: {
+                "Movie": { count: 892, topTitle: "Avatar" },
+                "TV Show": { count: 558, topTitle: "The Mandalorian" }
+            },
+            total_titles: 1450,
+            date_range: "1937 - 2022"
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMetrics();
+            renderGenresChart();
+            renderTypeChart();
+            renderRatings();
+            renderWordCloud();
+            renderActors();
+            renderInsights();
+        });
+
+        function renderMetrics() {
+            document.getElementById('totalTitles').textContent = data.total_titles.toLocaleString();
+            document.getElementById('genreCount').textContent = Object.keys(data.genres).length;
+            document.getElementById('ratingTypes').textContent = Object.keys(data.ratings).length;
+            const yearRange = data.date_range.split(' - ');
+            document.getElementById('dateRange').textContent = (parseInt(yearRange[1]) - parseInt(yearRange[0]));
+        }
+
+        function renderGenresChart() {
+            const container = document.getElementById('genresChart');
+            const genres = Object.entries(data.genres).sort((a, b) => b[1].count - a[1].count);
+            const maxCount = genres[0][1].count;
+            let html = '';
+
+            genres.forEach(([genre, info]) => {
+                const percentage = (info.count / maxCount) * 100;
+                html += `
+                    <div class="bar-item">
+                        <div class="bar-label">${genre}</div>
+                        <div class="bar-wrapper">
+                            <div class="bar-fill" style="width: ${percentage}%;">
+                                ${info.count}
+                            </div>
+                            <div class="bar-tooltip">
+                                <div class="tooltip-title">Top Content</div>
+                                <div class="tooltip-content">
+                                    <strong>Movie:</strong> ${info.movie}<br>
+                                    <strong>TV:</strong> ${info.tv}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderTypeChart() {
+            const types = Object.keys(data.content_type);
+            const counts = types.map(t => data.content_type[t].count);
+
+            const trace = {
+                labels: types,
+                values: counts,
+                type: 'pie',
+                marker: { colors: ['#0066ff', '#00ccff'] },
+                textinfo: 'label+percent',
+                textfont: { color: '#fff', size: 14 },
+                hovertemplate: '<b>%{label}</b><br>Count: %{value}<extra></extra>'
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0, 26, 77, 0)',
+                font: { color: '#fff' }
+            };
+
+            Plotly.newPlot('typeChart', [trace], layout, { responsive: true });
+        }
+
+        function renderRatings() {
+            const container = document.getElementById('ratingsContainer');
+            const total = Object.values(data.ratings).reduce((a, b) => a + b.count, 0);
+            let html = '';
+
+            for (const [rating, info] of Object.entries(data.ratings).sort((a, b) => b[1].count - a[1].count)) {
+                const percentage = ((info.count / total) * 100).toFixed(1);
+                html += `
+                    <div class="rating-tile">
+                        <div class="rating-name">${rating}</div>
+                        <div class="rating-value">${info.count}</div>
+                        <div class="rating-percentage">${percentage}%</div>
+                        <div class="rating-tooltip">
+                            <strong>Top Title:</strong><br>${info.topTitle}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderWordCloud() {
+            const container = document.getElementById('wordcloud');
+            const words = Object.entries(data.word_cloud).sort((a, b) => b[1].count - a[1].count);
+            const maxCount = words[0][1].count;
+            let html = '';
+
+            words.forEach(([word, info]) => {
+                const size = 14 + (info.count / maxCount) * 28;
+                html += `
+                    <div class="word" style="font-size: ${size}px;">
+                        ${word}
+                        <div class="word-tooltip">
+                            <div class="tooltip-title">Top Content</div>
+                            <div class="tooltip-content">
+                                <strong>Movie:</strong> ${info.movie}<br>
+                                <strong>TV:</strong> ${info.tv}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderActors() {
+            const container = document.getElementById('actorsContainer');
+            let html = '';
+            let rank = 1;
+
+            for (const [actor, info] of Object.entries(data.top_actors).sort((a, b) => b[1].count - a[1].count).slice(0, 3)) {
+                let appearancesHTML = '';
+                info.appearances.forEach(app => {
+                    appearancesHTML += `
+                        <div class="appearance-item">
+                            <div class="appearance-title">${app.title}</div>
+                            <div class="appearance-type">${app.type}</div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="actor-tile">
+                        <div class="actor-rank">#${rank}</div>
+                        <div class="actor-name">${actor}</div>
+                        <div class="actor-appearances">${info.count} Appearances</div>
+                        <div class="actor-dropdown">
+                            ${appearancesHTML}
+                        </div>
+                    </div>
+                `;
+...                 rank++;
+...             }
+... 
+...             container.innerHTML = html;
+...         }
+... 
+...         function renderInsights() {
+...             const container = document.getElementById('insightsContainer');
+...             const topGenre = Object.entries(data.genres).sort((a, b) => b[1].count - a[1].count)[0];
+...             const topRating = Object.entries(data.ratings).sort((a, b) => b[1].count - a[1].count)[0];
+...             const topWord = Object.entries(data.word_cloud).sort((a, b) => b[1].count - a[1].count)[0];
+... 
+...             const insights = `
+...                 <p><strong>🎯 Genre Dominance:</strong> <strong>${topGenre[0]}</strong> reigns supreme with ${topGenre[1].count} titles, led by <strong>${topGenre[1].movie}</strong> and <strong>${topGenre[1].tv}</strong>.</p>
+...                 <p><strong>👨‍👩‍👧‍👦 Family Focus:</strong> <strong>${topRating[0]}</strong> rated content dominates with ${topRating[1].count} titles, reflecting Disney+'s commitment to family-friendly entertainment.</p>
+...                 <p><strong>✨ Narrative Magic:</strong> The word <strong>"${topWord[0]}"</strong> appears ${topWord[1].count} times, found prominently in <strong>${topWord[1].movie}</strong> and <strong>${topWord[1].tv}</strong>.</p>
+...                 <p><strong>📊 Content Balance:</strong> Disney+ offers ${data.content_type['Movie'].count} movies and ${data.content_type['TV Show'].count} TV shows, balancing cinematic blockbusters with episodic storytelling.</p>
+...             `;
+... 
+...             container.innerHTML = insights;
+...         }
+... 
+...         if ('serviceWorker' in navigator) {
+...             navigator.serviceWorker.register('data:text/javascript,console.log("PWA Ready")');
+...         }
+...     </script>
+... </body>
