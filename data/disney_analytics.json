@@ -1,0 +1,89 @@
+{
+  "genres": {
+    "Family": 632,
+    "Animation": 542,
+    "Documentary": 174
+  },
+  "word_cloud": {
+    "details": 122,
+    "advisory": 121,
+    "from": 113,
+    "their": 98,
+    "disney": 82,
+    "world": 76,
+    "life": 71,
+    "family": 67,
+    "when": 64,
+    "into": 60,
+    "must": 57,
+    "save": 57,
+    "team": 53,
+    "friends": 53,
+    "young": 43,
+    "story": 43,
+    "mickey": 40,
+    "most": 40,
+    "adventure": 38,
+    "time": 37
+  },
+  "top_actors": [
+    {
+      "name": "Jim Cummings",
+      "count": 33
+    },
+    {
+      "name": "Walt Disney",
+      "count": 20
+    },
+    {
+      "name": "Larry the Cable Guy",
+      "count": 19
+    },
+    {
+      "name": "Bill Farmer",
+      "count": 18
+    },
+    {
+      "name": "Tress MacNeille",
+      "count": 16
+    },
+    {
+      "name": "Corey Burton",
+      "count": 16
+    },
+    {
+      "name": "Keith Ferguson",
+      "count": 16
+    },
+    {
+      "name": "Bob Peterson",
+      "count": 15
+    },
+    {
+      "name": "Jeff Bennett",
+      "count": 15
+    },
+    {
+      "name": "Pinto Colvig",
+      "count": 15
+    }
+  ],
+  "ratings": {
+    "TV-G": 318,
+    "PG": 236,
+    "TV-PG": 301,
+    "": 3,
+    "PG-13": 66,
+    "TV-14": 79,
+    "G": 253,
+    "TV-Y7": 131,
+    "TV-Y": 50,
+    "TV-Y7-FV": 13
+  },
+  "content_type": {
+    "Movie": 1052,
+    "TV Show": 398
+  },
+  "total_titles": 1450,
+  "date_range": "1928 - 2021"
+}
